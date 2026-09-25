@@ -11,3 +11,13 @@ plus bun pre-installed at `~/.bun/bin` so `oven-sh/setup-bun` skips its
 download on a version match.
 
 Published as `ghcr.io/agjs/ci-runner:<runner-version>-<build>`.
+
+## Job-start hook
+
+`/home/runner/hooks/job-started.sh` runs before each job when
+`ACTIONS_RUNNER_HOOK_JOB_STARTED` points at it. If `CI_BUILDKIT_ENDPOINT` is
+set (e.g. `tcp://buildkitd.ci-runners.svc.cluster.local:1234`), it makes that
+remote BuildKit the default docker builder, so plain `docker build` and
+`docker compose build` hit its persistent cache. Pair with
+`BUILDX_DEFAULT_LOAD=1` so results land in the job's local docker. Falls back
+to local builds if the endpoint is unreachable.

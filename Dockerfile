@@ -60,6 +60,16 @@ RUN set -eux; \
     google-chrome --version
 ENV CHROME_PATH=/usr/bin/google-chrome
 
+# Playwright's Chromium system libraries, so `playwright install --with-deps`
+# in jobs finds them already present. Browsers themselves are version-bound
+# and cached separately (the cluster mounts a shared PLAYWRIGHT_BROWSERS_PATH).
+ARG PLAYWRIGHT_VERSION=1.62.1
+RUN npx -y "playwright@${PLAYWRIGHT_VERSION}" install-deps chromium \
+ && rm -rf /var/lib/apt/lists/* /root/.npm
+
+# Job-start hook: route docker builds to a shared BuildKit when available.
+COPY --chmod=755 hooks/job-started.sh /home/runner/hooks/job-started.sh
+
 # GitHub-hosted runners allow `pip install --user` against the system
 # Python; Ubuntu 24.04 blocks it by default (PEP 668). Match hosted
 # behaviour — jobs install pinned tools into ~/.local in a throwaway pod.
