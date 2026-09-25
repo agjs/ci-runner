@@ -63,7 +63,7 @@ ENV CHROME_PATH=/usr/bin/google-chrome
 # Playwright's Chromium system libraries, so `playwright install --with-deps`
 # in jobs finds them already present. Browsers themselves are version-bound
 # and cached separately (the cluster mounts a shared PLAYWRIGHT_BROWSERS_PATH).
-ARG PLAYWRIGHT_VERSION=1.62.1
+ARG PLAYWRIGHT_VERSION=1.63.0
 RUN npx -y "playwright@${PLAYWRIGHT_VERSION}" install-deps chromium \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
