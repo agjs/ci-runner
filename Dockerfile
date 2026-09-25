@@ -46,6 +46,19 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 USER runner
 
+# Bun pre-installed where oven-sh/setup-bun looks first (~/.bun/bin/bun):
+# on a version match it uses it with no download or cache restore at all
+# (setup-bun src/action.ts). Keep in step with the repos' pinned bun; on a
+# mismatch setup-bun just downloads as usual.
+ARG BUN_VERSION=1.4.2
+RUN curl -fsSLo /tmp/bun.zip "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-x64.zip" \
+ && unzip -q /tmp/bun.zip -d /tmp \
+ && mkdir -p ~/.bun/bin \
+ && mv /tmp/bun-linux-x64/bun ~/.bun/bin/bun \
+ && ln -s bun ~/.bun/bin/bunx \
+ && rm -rf /tmp/bun.zip /tmp/bun-linux-x64 \
+ && ~/.bun/bin/bun --revision
+
 # Fail the build if a --user install into ~/.local/bin doesn't work.
 RUN pip install --user --no-cache-dir yamllint==1.38.0 \
  && ~/.local/bin/yamllint --version \
