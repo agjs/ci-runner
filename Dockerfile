@@ -10,6 +10,7 @@ ARG KUSTOMIZE_VERSION=v5.8.1
 ARG HELM_VERSION=v4.3.0
 ARG YQ_VERSION=v4.53.6
 ARG GH_VERSION=2.101.0
+ARG NODE_VERSION=v24.21.0
 
 USER root
 
@@ -38,6 +39,26 @@ RUN set -eux; \
     curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar -xz --strip-components=2 -C /usr/local/bin "gh_${GH_VERSION}_linux_amd64/bin/gh"; \
     chmod +x /usr/local/bin/kubectl /usr/local/bin/yq; \
     for t in kubectl kustomize helm yq gh shellcheck yamllint zip make gcc pipx psql rsync envsubst wget; do command -v "$t"; done
+
+# Node.js (hosted runners preinstall it; e.g. tinkercaster's agent runtime
+# test spawns `node` for the Vite dev server).
+RUN set -eux; \
+    curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz" \
+      | tar -xJ --strip-components=1 -C /usr/local; \
+    node --version; npm --version; npx --version
+
+# Google Chrome stable (hosted runners preinstall it; Lighthouse CI and
+# other headless-browser tooling look for it on the standard path).
+RUN set -eux; \
+    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+      | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg; \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
+      > /etc/apt/sources.list.d/google-chrome.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends google-chrome-stable; \
+    rm -rf /var/lib/apt/lists/*; \
+    google-chrome --version
+ENV CHROME_PATH=/usr/bin/google-chrome
 
 # GitHub-hosted runners allow `pip install --user` against the system
 # Python; Ubuntu 24.04 blocks it by default (PEP 668). Match hosted

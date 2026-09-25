@@ -5,7 +5,8 @@ GitHub Actions runner image for self-hosted runners in a home k3s cluster
 
 `ghcr.io/actions/actions-runner` plus the tools GitHub-hosted Ubuntu runners
 ship and workflows tend to assume: shellcheck, yamllint, zip, make/gcc,
-pip/pipx, psql, rsync, wget, envsubst, kubectl, kustomize, helm, yq, gh —
+pip/pipx, psql, rsync, wget, envsubst, kubectl, kustomize, helm, yq, gh,
+Node.js 24 and Google Chrome —
 plus bun pre-installed at `~/.bun/bin` so `oven-sh/setup-bun` skips its
 download on a version match.
 
