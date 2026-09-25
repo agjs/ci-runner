@@ -39,4 +39,14 @@ RUN set -eux; \
     chmod +x /usr/local/bin/kubectl /usr/local/bin/yq; \
     for t in kubectl kustomize helm yq gh shellcheck yamllint zip make gcc pipx psql rsync envsubst wget; do command -v "$t"; done
 
+# GitHub-hosted runners allow `pip install --user` against the system
+# Python; Ubuntu 24.04 blocks it by default (PEP 668). Match hosted
+# behaviour — jobs install pinned tools into ~/.local in a throwaway pod.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
 USER runner
+
+# Fail the build if a --user install into ~/.local/bin doesn't work.
+RUN pip install --user --no-cache-dir yamllint==1.38.0 \
+ && ~/.local/bin/yamllint --version \
+ && pip uninstall -y yamllint >/dev/null
