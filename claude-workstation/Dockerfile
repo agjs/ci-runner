@@ -1,7 +1,9 @@
 # Claude Code workstation: the image behind the claude-workstation namespace on
 # the home k3s cluster (manifests/platform/claude-workstation in
-# argocd-app-of-apps). It runs `claude remote-control` 24/7 so the owner can
-# drive Claude Code from the Claude mobile app.
+# argocd-app-of-apps). The owner SSHes in from a phone (over WireGuard or the
+# LAN) and lands in a tmux session running interactive Claude Code. sshd runs
+# as the non-root `claude` user on port 2222; its config is written by the
+# pod's entrypoint.
 #
 # Everything a session may need is baked in, so the pod never installs tools
 # at start-up. Versions are pinned; bump them deliberately, and keep
@@ -28,6 +30,7 @@ RUN apt-get update \
       git \
       jq \
       openssh-client \
+      openssh-server \
       python3 \
       ripgrep \
       tmux \
@@ -87,11 +90,17 @@ RUN useradd --create-home --uid 1000 --shell /bin/bash claude \
  && mkdir -p /home/claude/work \
  && chown -R 1000:1000 /home/claude
 
+# sshd (running as claude, so no privilege separation) needs its privsep dir to
+# exist at start-up. /run is read-only in the pod, so it is created here.
+RUN mkdir -p /run/sshd && chmod 0755 /run/sshd
+
 USER 1000:1000
 WORKDIR /home/claude
 ENV HOME=/home/claude \
     TERM=xterm-256color \
     TMUX_TMPDIR=/tmp \
     DISABLE_AUTOUPDATER=1
+
+EXPOSE 2222
 
 CMD ["bash"]
