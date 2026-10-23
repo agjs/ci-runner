@@ -21,3 +21,10 @@ remote BuildKit the default docker builder, so plain `docker build` and
 `docker compose build` hit its persistent cache. Pair with
 `BUILDX_DEFAULT_LOAD=1` so results land in the job's local docker. Falls back
 to local builds if the endpoint is unreachable.
+
+## Claude Code workstation image
+
+`claude-workstation/Dockerfile` is a Debian image with the Claude Code CLI
+(pinned), bun, git, gh, kubectl, vault, helm, kustomize and yamllint. It runs the
+always-on Claude Code workstation on the homelab cluster. Tag:
+`ghcr.io/agjs/ci-runner:claude-workstation-<claude-code-version>-<build>`.
