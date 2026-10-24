@@ -9,7 +9,8 @@
 # Everything a session may need is baked in, so the pod never installs tools
 # at start-up. Versions are pinned; bump them deliberately, and keep
 # CLAUDE_CODE_VERSION in step with the image tag built by CI.
-FROM debian:bookworm-slim
+# trixie, not bookworm: Worktrunk needs Git 2.43+ and bookworm ships 2.39.
+FROM debian:trixie-slim
 
 ARG CLAUDE_CODE_VERSION=2.1.296
 ARG NODE_VERSION=v24.22.1
@@ -19,6 +20,8 @@ ARG KUSTOMIZE_VERSION=v5.8.1
 ARG HELM_VERSION=v4.3.0
 ARG GH_VERSION=2.101.0
 ARG VAULT_VERSION=2.0.2
+ARG WORKTRUNK_VERSION=v0.80.0
+ARG WORKTRUNK_SHA256=532ce3ed5eecb1be274c925b5887f61671e2434a4ca2561b9a8ac9379dbba199
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8
@@ -86,6 +89,16 @@ RUN set -eux; \
     unzip -q /tmp/vault.zip -d /usr/local/bin vault; \
     rm -f /tmp/vault.zip; \
     vault version
+
+# Worktrunk (wt): one git worktree per task, so parallel Claude sessions in the
+# same repo never share a checkout. Checksum pinned with the version.
+RUN set -eux; \
+    curl -fsSLo /tmp/wt.tar.xz "https://github.com/max-sixty/worktrunk/releases/download/${WORKTRUNK_VERSION}/worktrunk-x86_64-unknown-linux-musl.tar.xz"; \
+    echo "${WORKTRUNK_SHA256}  /tmp/wt.tar.xz" | sha256sum -c -; \
+    tar -xJf /tmp/wt.tar.xz -C /tmp; \
+    install -m 0755 /tmp/worktrunk-x86_64-unknown-linux-musl/wt /tmp/worktrunk-x86_64-unknown-linux-musl/git-wt /usr/local/bin/; \
+    rm -rf /tmp/wt.tar.xz /tmp/worktrunk-x86_64-unknown-linux-musl; \
+    wt --version
 
 # Non-root owner of the persistent home volume (/home/claude).
 RUN useradd --create-home --uid 1000 --shell /bin/bash claude \
