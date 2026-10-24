@@ -1,7 +1,8 @@
 # Claude Code workstation: the image behind the claude-workstation namespace on
 # the home k3s cluster (manifests/platform/claude-workstation in
 # argocd-app-of-apps). The owner SSHes in from a phone (over WireGuard or the
-# LAN) and lands in a tmux session running interactive Claude Code. sshd runs
+# LAN), or Mosh for a session that survives network changes and phone sleep,
+# and lands in a tmux session running interactive Claude Code. sshd runs
 # as the non-root `claude` user on port 2222; its config is written by the
 # pod's entrypoint.
 #
@@ -29,6 +30,7 @@ RUN apt-get update \
       curl \
       git \
       jq \
+      mosh \
       openssh-client \
       openssh-server \
       python3 \
