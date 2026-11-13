@@ -3,7 +3,7 @@
 # The upstream actions-runner image is deliberately minimal; GitHub-hosted
 # ubuntu runners ship a large toolset that workflows quietly rely on. This
 # adds the common gaps so jobs behave the same on either.
-FROM ghcr.io/actions/actions-runner:2.336.0
+FROM ghcr.io/actions/actions-runner:2.338.2
 
 ARG KUBECTL_VERSION=v1.36.2
 ARG KUSTOMIZE_VERSION=v5.8.1
